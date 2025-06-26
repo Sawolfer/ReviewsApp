@@ -34,10 +34,23 @@ extension ReviewsViewModel {
     /// Метод получения отзывов.
     func getReviews() {
         guard state.shouldLoad else { return }
-        state.shouldLoad = false
-        reviewsProvider.getReviews(offset: state.offset, completion: gotReviews)
-    }
 
+        state.shouldLoad = false
+//        reviewsProvider.getReviews(offset: state.offset, completion: gotReviews)
+        reviewsProvider.getReviews(offset: state.offset) {  [weak self] result in
+
+            guard let self = self else { return }
+
+            DispatchQueue.main.async {
+                switch result {
+                    case .success(let data):
+                        self.gotReviews(data)
+                    case .failure(let error):
+                        print(error)
+                }
+            }
+        }
+    }
 }
 
 // MARK: - Private
@@ -45,9 +58,9 @@ extension ReviewsViewModel {
 private extension ReviewsViewModel {
 
     /// Метод обработки получения отзывов.
-    func gotReviews(_ result: ReviewsProvider.GetReviewsResult) {
+    func gotReviews(_ data: Data) {
         do {
-            let data = try result.get()
+//            let data = try result.get()
             let reviews = try decoder.decode(Reviews.self, from: data)
             state.items += reviews.items.map(makeReviewItem)
             state.offset += state.limit
@@ -79,10 +92,15 @@ private extension ReviewsViewModel {
     typealias ReviewItem = ReviewCellConfig
 
     func makeReviewItem(_ review: Review) -> ReviewItem {
+//        let userName = "\(review.user.first_name) \(review.user.last_name)".attributed(font: .username)
+        let username = "\(review.first_name) \(review.last_name)".attributed(font: .username)
+        let rating = review.rating
         let reviewText = review.text.attributed(font: .text)
         let created = review.created.attributed(font: .created, color: .created)
         let item = ReviewItem(
+            username: username,
             reviewText: reviewText,
+            rating: rating,
             created: created,
             onTapShowMore: showMoreReview
         )
@@ -122,7 +140,7 @@ extension ReviewsViewModel: UITableViewDelegate {
         withVelocity velocity: CGPoint,
         targetContentOffset: UnsafeMutablePointer<CGPoint>
     ) {
-        if shouldLoadNextPage(scrollView: scrollView, targetOffsetY: targetContentOffset.pointee.y) {
+        if velocity.y > 0 && shouldLoadNextPage(scrollView: scrollView, targetOffsetY: targetContentOffset.pointee.y) {
             getReviews()
         }
     }
@@ -130,7 +148,7 @@ extension ReviewsViewModel: UITableViewDelegate {
     private func shouldLoadNextPage(
         scrollView: UIScrollView,
         targetOffsetY: CGFloat,
-        screensToLoadNextPage: Double = 2.5
+        screensToLoadNextPage: Double = 1.5
     ) -> Bool {
         let viewHeight = scrollView.bounds.height
         let contentHeight = scrollView.contentSize.height
