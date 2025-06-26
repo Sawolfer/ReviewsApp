@@ -128,11 +128,7 @@ private extension ReviewCell {
         reviewTextLabel.lineBreakMode = .byWordWrapping
     }
 
-    // TODO: setup rating stars
     func setupRatingView() {
-//        ratingViewFrame.contentMode = .scaleAspectFill
-//        ratingViewFrame.clipsToBounds = true
-//        ratingViewFrame.layer.masksToBounds = true
         contentView.addSubview(ratingViewFrame)
     }
 
