@@ -35,18 +35,19 @@ extension ReviewsViewModel {
     func getReviews() {
         guard state.shouldLoad else { return }
 
-        state.shouldLoad = false
-//        reviewsProvider.getReviews(offset: state.offset, completion: gotReviews)
-        reviewsProvider.getReviews(offset: state.offset) {  [weak self] result in
-
+        DispatchQueue.global().async { [weak self] in
             guard let self = self else { return }
 
-            DispatchQueue.main.async {
-                switch result {
-                    case .success(let data):
-                        self.gotReviews(data)
-                    case .failure(let error):
-                        print(error)
+            self.state.shouldLoad = false
+
+            self.reviewsProvider.getReviews(offset: state.offset) { result in
+                DispatchQueue.main.async {
+                    switch result {
+                        case .success(let data):
+                            self.gotReviews(data)
+                        case .failure(let error):
+                            print(error)
+                    }
                 }
             }
         }
