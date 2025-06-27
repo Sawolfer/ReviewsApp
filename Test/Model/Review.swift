@@ -10,9 +10,6 @@ struct Review: Decodable {
     let text: String
     /// Время создания отзыва.
     let created: String
-
-    /// информация о создателе отзыва
-//    let user: UserData
 }
 
 

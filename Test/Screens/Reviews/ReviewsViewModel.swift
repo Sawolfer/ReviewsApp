@@ -31,22 +31,28 @@ extension ReviewsViewModel {
 
     typealias State = ReviewsViewModelState
 
+    func getReviewsNumber() -> Int {
+        print(state.count)
+        return state.count
+    }
+
     /// Метод получения отзывов.
     func getReviews() {
         guard state.shouldLoad else { return }
 
-        state.shouldLoad = false
-//        reviewsProvider.getReviews(offset: state.offset, completion: gotReviews)
-        reviewsProvider.getReviews(offset: state.offset) {  [weak self] result in
-
+        DispatchQueue.global().async { [weak self] in
             guard let self = self else { return }
 
-            DispatchQueue.main.async {
-                switch result {
-                    case .success(let data):
-                        self.gotReviews(data)
-                    case .failure(let error):
-                        print(error)
+            self.state.shouldLoad = false
+
+            self.reviewsProvider.getReviews(offset: state.offset) { result in
+                DispatchQueue.main.async {
+                    switch result {
+                        case .success(let data):
+                            self.gotReviews(data)
+                        case .failure(let error):
+                            print(error)
+                    }
                 }
             }
         }
@@ -60,11 +66,11 @@ private extension ReviewsViewModel {
     /// Метод обработки получения отзывов.
     func gotReviews(_ data: Data) {
         do {
-//            let data = try result.get()
             let reviews = try decoder.decode(Reviews.self, from: data)
             state.items += reviews.items.map(makeReviewItem)
             state.offset += state.limit
             state.shouldLoad = state.offset < reviews.count
+            state.count = reviews.count
         } catch {
             state.shouldLoad = true
         }
@@ -148,7 +154,7 @@ extension ReviewsViewModel: UITableViewDelegate {
     private func shouldLoadNextPage(
         scrollView: UIScrollView,
         targetOffsetY: CGFloat,
-        screensToLoadNextPage: Double = 1.5
+        screensToLoadNextPage: Double = 2.5
     ) -> Bool {
         let viewHeight = scrollView.bounds.height
         let contentHeight = scrollView.contentSize.height
