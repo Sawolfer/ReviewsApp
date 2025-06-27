@@ -32,7 +32,6 @@ extension ReviewsViewModel {
     typealias State = ReviewsViewModelState
 
     func getReviewsNumber() -> Int {
-        print(state.count)
         return state.count
     }
 

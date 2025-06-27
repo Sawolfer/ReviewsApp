@@ -93,6 +93,9 @@ final class ReviewCell: UITableViewCell {
         createdLabel.frame = layout.createdLabelFrame
     }
 
+    deinit {
+        print("Cell deallocated")
+    }
 }
 
 // MARK: - Private

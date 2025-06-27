@@ -26,7 +26,6 @@ final class ReviewsViewController: UIViewController {
         setupViewModel()
         viewModel.getReviews()
     }
-
 }
 
 // MARK: - Private
