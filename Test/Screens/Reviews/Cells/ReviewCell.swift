@@ -94,6 +94,7 @@ final class ReviewCell: UITableViewCell {
     }
 
     deinit {
+        avatarView.image = nil
         print("Cell deallocated")
     }
 }
