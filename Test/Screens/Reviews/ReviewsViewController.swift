@@ -76,12 +76,17 @@ private extension ReviewsViewController {
             guard let self = self else { return }
 
             self.count = self.viewModel.getReviewsNumber()
+            self.reviewsView.setLoading(
+                viewModel.state.isLoading &&
+                viewModel.state.items.count == 0
+            )
 
-            let newFooter = self.makeReviewsNumberView(count: self.count)
-            newFooter.frame.size.width = self.reviewsView.bounds.width
-            self.reviewsView.tableView.tableFooterView = newFooter
-
-            self.reviewsView.tableView.reloadData()
+            if !viewModel.state.isLoading {
+                let footer = self.makeReviewsNumberView(count: viewModel.state.count)
+                footer.frame.size.width = self.reviewsView.tableView.bounds.width
+                self.reviewsView.tableView.tableFooterView = footer
+                self.reviewsView.tableView.reloadData()
+            }
         }
     }
 }
