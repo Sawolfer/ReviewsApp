@@ -6,7 +6,7 @@ final class ReviewsViewModel: NSObject {
     /// Замыкание, вызываемое при изменении `state`.
     var onStateChange: ((State) -> Void)?
 
-    private var state: State
+    private(set) var state: State
     private let reviewsProvider: ReviewsProvider
     private let ratingRenderer: RatingRenderer
     private let decoder: JSONDecoder
@@ -36,21 +36,26 @@ extension ReviewsViewModel {
     }
 
     /// Метод получения отзывов.
-    func getReviews() {
-        guard state.shouldLoad else { return }
+    func getReviews(){
+        guard state.shouldLoad, !state.isLoading else { return }
+
+        state.isLoading = true
+        state.shouldLoad = false
+        onStateChange?(state)
 
         DispatchQueue.global().async { [weak self] in
             guard let self = self else { return }
 
-            self.state.shouldLoad = false
-
             self.reviewsProvider.getReviews(offset: state.offset) { result in
                 DispatchQueue.main.async {
+                    self.state.isLoading = false
                     switch result {
                         case .success(let data):
                             self.gotReviews(data)
                         case .failure(let error):
                             print(error)
+                            self.state.shouldLoad = true
+                            self.onStateChange?(self.state)
                     }
                 }
             }
