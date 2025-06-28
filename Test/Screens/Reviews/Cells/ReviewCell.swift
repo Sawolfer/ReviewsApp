@@ -93,6 +93,10 @@ final class ReviewCell: UITableViewCell {
         createdLabel.frame = layout.createdLabelFrame
     }
 
+    deinit {
+        avatarView.image = nil
+        print("Cell deallocated")
+    }
 }
 
 // MARK: - Private

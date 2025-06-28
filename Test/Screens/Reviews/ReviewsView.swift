@@ -18,6 +18,10 @@ final class ReviewsView: UIView {
         tableView.frame = bounds.inset(by: safeAreaInsets)
     }
 
+    deinit {
+        tableView.delegate = nil
+        tableView.dataSource = nil
+    }
 }
 
 // MARK: - Private

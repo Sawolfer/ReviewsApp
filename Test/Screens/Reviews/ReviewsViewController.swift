@@ -26,7 +26,6 @@ final class ReviewsViewController: UIViewController {
         setupViewModel()
         viewModel.getReviews()
     }
-
 }
 
 // MARK: - Private
@@ -46,23 +45,15 @@ private extension ReviewsViewController {
     }
 
     func makeReviewsNumberView(count: Int) -> UIView {
-        let container = UIView()
-        container.frame.size.height = 44
+        let container = UIView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 44))
 
-        let label = UILabel()
+        let label = UILabel(frame: container.bounds.insetBy(dx: 16, dy: 0))
         label.text = "\(count) \(pluralForm(for: count))"
         label.font = UIFont.systemFont(ofSize: 14, weight: .medium)
         label.textColor = .secondaryLabel
         label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
+        label.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         container.addSubview(label)
-
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: container.centerYAnchor),
-            label.leadingAnchor.constraint(greaterThanOrEqualTo: container.leadingAnchor, constant: 16),
-            label.trailingAnchor.constraint(lessThanOrEqualTo: container.trailingAnchor, constant: -16)
-        ])
 
         return container
     }
