@@ -6,7 +6,7 @@ final class ReviewsViewModel: NSObject {
     /// Замыкание, вызываемое при изменении `state`.
     var onStateChange: ((State) -> Void)?
 
-    private var state: State
+    private(set) var state: State
     private let reviewsProvider: ReviewsProvider
     private let ratingRenderer: RatingRenderer
     private let decoder: JSONDecoder
@@ -31,13 +31,36 @@ extension ReviewsViewModel {
 
     typealias State = ReviewsViewModelState
 
-    /// Метод получения отзывов.
-    func getReviews() {
-        guard state.shouldLoad else { return }
-        state.shouldLoad = false
-        reviewsProvider.getReviews(offset: state.offset, completion: gotReviews)
+    func getReviewsNumber() -> Int {
+        return state.count
     }
 
+    /// Метод получения отзывов.
+    func getReviews(){
+        guard state.shouldLoad, !state.isLoading else { return }
+
+        state.isLoading = true
+        state.shouldLoad = false
+        onStateChange?(state)
+
+        DispatchQueue.global().async { [weak self] in
+            guard let self = self else { return }
+
+            self.reviewsProvider.getReviews(offset: state.offset) { result in
+                DispatchQueue.main.async {
+                    self.state.isLoading = false
+                    switch result {
+                        case .success(let data):
+                            self.gotReviews(data)
+                        case .failure(let error):
+                            print(error)
+                            self.state.shouldLoad = true
+                            self.onStateChange?(self.state)
+                    }
+                }
+            }
+        }
+    }
 }
 
 // MARK: - Private
@@ -45,13 +68,13 @@ extension ReviewsViewModel {
 private extension ReviewsViewModel {
 
     /// Метод обработки получения отзывов.
-    func gotReviews(_ result: ReviewsProvider.GetReviewsResult) {
+    func gotReviews(_ data: Data) {
         do {
-            let data = try result.get()
             let reviews = try decoder.decode(Reviews.self, from: data)
             state.items += reviews.items.map(makeReviewItem)
             state.offset += state.limit
             state.shouldLoad = state.offset < reviews.count
+            state.count = reviews.count
         } catch {
             state.shouldLoad = true
         }
@@ -79,11 +102,20 @@ private extension ReviewsViewModel {
     typealias ReviewItem = ReviewCellConfig
 
     func makeReviewItem(_ review: Review) -> ReviewItem {
+        let username = "\(review.first_name) \(review.last_name)".attributed(font: .username)
+        let rating = review.rating
         let reviewText = review.text.attributed(font: .text)
         let created = review.created.attributed(font: .created, color: .created)
+
+        let images = review.images?.compactMap { UIImage(named: $0) } ?? []
+
         let item = ReviewItem(
+            username: username,
             reviewText: reviewText,
+            rating: rating,
             created: created,
+            images: images,
+            avatarURL: review.avatar_url,
             onTapShowMore: showMoreReview
         )
         return item
@@ -122,7 +154,7 @@ extension ReviewsViewModel: UITableViewDelegate {
         withVelocity velocity: CGPoint,
         targetContentOffset: UnsafeMutablePointer<CGPoint>
     ) {
-        if shouldLoadNextPage(scrollView: scrollView, targetOffsetY: targetContentOffset.pointee.y) {
+        if velocity.y > 0 && shouldLoadNextPage(scrollView: scrollView, targetOffsetY: targetContentOffset.pointee.y) {
             getReviews()
         }
     }
