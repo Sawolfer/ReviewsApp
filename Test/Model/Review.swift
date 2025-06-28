@@ -12,6 +12,8 @@ struct Review: Decodable {
     let created: String
     /// Картинки к отзыву
     let images: [String]?
+
+    let avatar_url: String
 }
 
 
