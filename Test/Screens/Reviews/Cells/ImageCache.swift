@@ -7,6 +7,7 @@
 
 import UIKit
 
+// MARK: - Image Loader
 extension UIImageView {
     /// Загрузка изображения по URL
     func load(url: URL) {
@@ -41,8 +42,8 @@ extension UIImageView {
     }
 }
 
-
-/// SingleTon для кэширования изображения
+// MARK: - Image Cache
+/// Singleton для кэширования изображения
 class ImageCache {
     static let shared = ImageCache()
     private let cache = NSCache<NSString, UIImage>()
