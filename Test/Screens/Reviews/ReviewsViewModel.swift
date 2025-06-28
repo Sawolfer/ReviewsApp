@@ -115,6 +115,7 @@ private extension ReviewsViewModel {
             rating: rating,
             created: created,
             images: images,
+            avatarURL: review.avatar_url,
             onTapShowMore: showMoreReview
         )
         return item

@@ -20,6 +20,8 @@ struct ReviewCellConfig {
     let created: NSAttributedString
 
     let images: [UIImage]
+
+    let avatarURL: String
     /// Замыкание, вызываемое при нажатии на кнопку "Показать полностью...".
     let onTapShowMore: (UUID) -> Void
 
@@ -43,6 +45,7 @@ extension ReviewCellConfig: TableCellConfig {
         cell.createdLabel.attributedText = created
         cell.config = self
         cell.updateStackView(images: images)
+        cell.updateAvatar()
     }
 
     /// Метод, возвращаюший высоту ячейки с данным ограничением по размеру.
@@ -123,6 +126,12 @@ final class ReviewCell: UITableViewCell {
         imagesStackView.isHidden = images.isEmpty
     }
 
+    func updateAvatar() {
+        if let avatarURL = config?.avatarURL, let url = URL(string: avatarURL) {
+            avatarView.load(url: url)
+        }
+    }
+
     deinit {
         avatarView.image = nil
         print("Cell deallocated")
@@ -132,7 +141,6 @@ final class ReviewCell: UITableViewCell {
 // MARK: - Private
 
 private extension ReviewCell {
-
     func setupCell() {
         setupAvatarImageView()
         setupUsernameTextLabel()
@@ -335,3 +343,4 @@ private final class ReviewCellLayout {
 
 fileprivate typealias Config = ReviewCellConfig
 fileprivate typealias Layout = ReviewCellLayout
+
