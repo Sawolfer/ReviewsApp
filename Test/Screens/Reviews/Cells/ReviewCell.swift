@@ -101,13 +101,11 @@ final class ReviewCell: UITableViewCell {
     }
 
     func updateStackView(images: [UIImage]) {
-        // Remove all existing arranged subviews
         imagesStackView.arrangedSubviews.forEach {
             imagesStackView.removeArrangedSubview($0)
             $0.removeFromSuperview()
         }
 
-        // Add new image views
         for image in images {
             let imageView = UIImageView(image: image)
             imageView.contentMode = .scaleAspectFill
@@ -115,14 +113,12 @@ final class ReviewCell: UITableViewCell {
             imageView.layer.cornerRadius = ReviewCellLayout.photoCornerRadius
             imageView.layer.masksToBounds = true
 
-            // Set fixed size for each image view
             imageView.widthAnchor.constraint(equalToConstant: ReviewCellLayout.photoSize.width).isActive = true
             imageView.heightAnchor.constraint(equalToConstant: ReviewCellLayout.photoSize.height).isActive = true
 
             imagesStackView.addArrangedSubview(imageView)
         }
 
-        // Show/hide stack view based on whether there are images
         imagesStackView.isHidden = images.isEmpty
     }
 

@@ -3,6 +3,7 @@ import UIKit
 final class ReviewsView: UIView {
 
     let tableView = UITableView()
+    let refreshControl = UIRefreshControl()
     private let loadingIndicator = UIActivityIndicatorView(style: .medium)
 
     required init?(coder: NSCoder) {
@@ -57,7 +58,33 @@ private extension ReviewsView {
     func setupView() {
         backgroundColor = .systemBackground
         setupTableView()
+        setupRefresh()
         setupLoadingIndicator()
+    }
+
+    func setupRefresh() {
+        refreshControl.attributedTitle = NSAttributedString(string: "Идет обновление...")
+        refreshControl.addTarget(self, action: #selector(refresh), for: UIControl.Event.valueChanged)
+        tableView.refreshControl = refreshControl
+    }
+
+    @objc func refresh() {
+        self.tableView.reloadData()
+        refreshBegin { [weak self] _ in
+            guard let self = self else { return }
+            self.tableView.reloadData()
+            self.refreshControl.endRefreshing()
+        }
+    }
+
+    func refreshBegin(refreshEnd: @escaping (Int) -> Void) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            sleep(2)
+
+            DispatchQueue.main.async {
+                refreshEnd(0)
+            }
+        }
     }
 
     func setupTableView() {
