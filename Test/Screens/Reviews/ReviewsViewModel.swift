@@ -6,7 +6,7 @@ final class ReviewsViewModel: NSObject {
     /// Замыкание, вызываемое при изменении `state`.
     var onStateChange: ((State) -> Void)?
 
-    private var state: State
+    private(set) var state: State
     private let reviewsProvider: ReviewsProvider
     private let ratingRenderer: RatingRenderer
     private let decoder: JSONDecoder
@@ -36,21 +36,26 @@ extension ReviewsViewModel {
     }
 
     /// Метод получения отзывов.
-    func getReviews() {
-        guard state.shouldLoad else { return }
+    func getReviews(){
+        guard state.shouldLoad, !state.isLoading else { return }
+
+        state.isLoading = true
+        state.shouldLoad = false
+        onStateChange?(state)
 
         DispatchQueue.global().async { [weak self] in
             guard let self = self else { return }
 
-            self.state.shouldLoad = false
-
             self.reviewsProvider.getReviews(offset: state.offset) { result in
                 DispatchQueue.main.async {
+                    self.state.isLoading = false
                     switch result {
                         case .success(let data):
                             self.gotReviews(data)
                         case .failure(let error):
                             print(error)
+                            self.state.shouldLoad = true
+                            self.onStateChange?(self.state)
                     }
                 }
             }
@@ -97,16 +102,20 @@ private extension ReviewsViewModel {
     typealias ReviewItem = ReviewCellConfig
 
     func makeReviewItem(_ review: Review) -> ReviewItem {
-//        let userName = "\(review.user.first_name) \(review.user.last_name)".attributed(font: .username)
         let username = "\(review.first_name) \(review.last_name)".attributed(font: .username)
         let rating = review.rating
         let reviewText = review.text.attributed(font: .text)
         let created = review.created.attributed(font: .created, color: .created)
+
+        let images = review.images?.compactMap { UIImage(named: $0) } ?? []
+
         let item = ReviewItem(
             username: username,
             reviewText: reviewText,
             rating: rating,
             created: created,
+            images: images,
+            avatarURL: review.avatar_url,
             onTapShowMore: showMoreReview
         )
         return item

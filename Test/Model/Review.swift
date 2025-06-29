@@ -10,6 +10,10 @@ struct Review: Decodable {
     let text: String
     /// Время создания отзыва.
     let created: String
+    /// Картинки к отзыву
+    let images: [String]?
+
+    let avatar_url: String
 }
 
 
